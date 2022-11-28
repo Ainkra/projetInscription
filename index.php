@@ -1,8 +1,15 @@
 <?php
 
-use projetInscription\Database\DatabaseManager;
+use projetInscription\Database;
+use projetInscription\EmailVerif;
 
-$db = new DatabaseManager("localhost","projet-inscription", "utf8", "root", "");
+/*Database connection*/
+
+
+/**/
+if(!empty($_POST['password']) && !empty($_POST['email'])) {
+
+}
 
 ?>
 
