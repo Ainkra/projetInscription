@@ -1,4 +1,6 @@
 <?php
+namespace projetInscription;
+
 use projetInscription\Database;
 
 // Comment relier une base de donnée entre les classes.
@@ -20,7 +22,7 @@ class EmailVerification extends \projetInscription\Database\Database
 
     public function verifyEmailExist($email) : bool
     {
-        $result = $this->db->queryFetch("SELECT 1 FROM user WHERE email = ?", [$email]);
+        $result = $this->db->queryFetch("SELECT COUNT(*) AS emailNumber FROM user WHERE email = ?", [$email]);
         return $result != null;
     }
 }
