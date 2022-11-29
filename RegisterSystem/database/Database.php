@@ -1,25 +1,29 @@
 <?php
 
-namespace projetInscription;
-
-use PDO;
+namespace projetInscription\Database;
 
 class Database
 {
-    public readonly PDO $dbConnection;
+    public readonly PDO $database;
 
-    public function __construct(string $host, string $dbName, string $dbUser, string $dbPassword) {
-        $this->dbConnection = new PDO("mysql:host=$host; dbname=$dbName; charset=utf8", $dbUser, $dbPassword);
+    public function __construct(string $host, string $dbname, string $dbUser, string $dbPassword)
+    {
+        $this->database = new PDO("mysql:host=$dbPassword; dbname=$dbname; charset=utf8;", $dbUser, $dbPassword);
     }
 
+    public function queryFetch(string $sqlQuery, array $param) : array|null
+    {
+        $db = $this->database->prepare($sqlQuery);
+        $db -> execute($param);
 
-//    public function fetchAll(string $query, array $parameters): array
-//    {
-//        $query = $this->dbConnection->prepare($query);
-//        $query->execute($parameters);
-//
-//        return $query->fetchAll();
-//    }
+        return $db->fetch();
+    }
 
+    public function queryFetchAll(string $sqlQuery, array $param) : array
+    {
+        $db = $this->database->prepare($sqlQuery);
+        $db -> execute($param);
 
+        return $db->fetchAll();
+    }
 }
