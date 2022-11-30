@@ -1,60 +1,73 @@
 <?php
 
-use projetInscription\Database\Database;
-use projetInscription\EmailVerification;
-use projetInscription\PseudoVerification;
-use projetInscription\CryptPassword;
+namespace projetInscription;
 
+require_once 'AutoLoader.php';
 
-if(!empty($_POST['password']) && !empty($_POST['email']) && !empty($_POST['pseudo'])) {
-    $email = htmlspecialchars($_POST["email"]);
-    $password = htmlspecialchars($_POST["password"]);
-    $pseudo = htmlspecialchars($_POST["pseudo"]);
+use Exception;
+use projetInscription\class\CryptPassword;
+use projetInscription\class\DatabaseManager;
+use projetInscription\class\EmailVerification;
+use projetInscription\class\PseudoVerification;
 
-    $db = new Database("localhost", "projet-inscription", "root", "");
-    $emailVerification = new EmailVerification($db);
-    $pseudoVerification = new PseudoVerification($db);
-    $passwordCrypt = new CryptPassword();
-
-    if (!$emailVerification->verifyEmailExist($email)){
-        // L'email n'existe pas, on continue
-        header("location: index.php?success=1&message='email disponible'");
-    }
-    else {
-        // l'email existe, on arrête.
-        header('location: index.php?error=1&message=Email déjà utilisée ! Essayez un autre.');
-        exit();
-    }
-
-    if($pseudoVerification->verifyPseudo($pseudo)) {
-        header("location: index.php?success=1&message='Pseudo valide'");
-    } else {
-        header("location: index.php?error=1&message='Pseudo déjà utilisé. Essayez un autre'");
-        exit();
-    }
-
-    $passwordCrypt->cryptsha1($password);
-
-
-
-
+try {
+    $db = new DatabaseManager();
+} catch (Exception $e) {
+    die("Erreur: ".$e->getMessage());
 }
 
+
+    if(!empty($_POST['pseudo']) && !empty($_POST['email']) && !empty($_POST['password'])) {
+        $email = htmlspecialchars($_POST['email']);
+        $pseudo = htmlspecialchars($_POST['pseudo']);
+        $password = htmlspecialchars($_POST['password']);
+
+
+        $verifEmail = new EmailVerification($db);
+        $verifPseudo = new PseudoVerification($db);
+        $passwordCryted = new CryptPassword();
+
+
+        $verifEmail->verifyEmailSyntax($email);
+
+        if (!$verifEmail->verifyEmailIsNotDouble($email)) {
+            header("location: index.php?success=1&message=email disponible");
+        }
+        else {
+            // l'email existe, on arrête.
+            header("location: index.php?error=1&message=Email déjà utilisée ! Essayez un autre.");
+            exit();
+        }
+
+        if (!$verifPseudo->verifyPseudoIsNotDouble($email)) {
+            header("location: index.php?success=1&message=Pseudo disponible !");
+        }
+        else {
+            header("location: index.php?success=1&message=Pseudo indisponible");
+            exit();
+        }
+
+        $password = $passwordCryted -> CryptPassword($password);
+        $db->query("INSERT INTO user(pseudo, email, password) VALUE(?,?,?)",
+            [$pseudo, $email, $password]);
+
+        header("location: index.php?success=1&message=Le compte a bien été créé. Veuillez vous connecter.");
+    }
 ?>
 
 <!DOCTYPE html>
 <html lang="fr">
     <head>
-    	<meta charset="utf-8">
-    	<link rel="stylesheet" href="css/default.css">
-    	<title>Mon Site PHP</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="css/default.css">
+        <title>Mon Site PHP</title>
     </head>
     <body>
         <section class="container">
 
             <form method="post" action="index.php">
 
-                <p>Incription</p>
+                <p>Inscription</p>
 
                 <?php if(isset($_GET['success'])) {
                     echo '<p class="alert success">Inscription réalisée avec succès.</p>';
